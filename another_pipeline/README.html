@@ -1,0 +1,512 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><title></title></head><body><h1>SINGLE CELL RNA SEQUENCING USING BD RHAPSODY TECHNOLOGY AND ABSeq</h1>
+
+<h3>Step 1 - Demultiplexing with blc2fastq (on CPT High Performance Computing platform)</h3>
+
+<p>To run the demultiplexing, several file were generated. In particular there are four csv files summarising each RUN&#39;s characteristics.</p>
+
+<p>Run_364.csv:</p>
+
+<pre><code>[Header],,,,
+Experiment Name,RUN364,,,
+Date,2020-11-09,,,
+Module,GenerateFASTQ - 2.0.1,,,
+Workflow,GenerateFASTQ,,,
+Library Prep Kit,BD_Rhapsody,,,
+Description,Constantin_BD_Rhapsody,,,
+Chemistry,Default,,,
+[Reads],,,,
+76,,,,
+76,,,,
+[Settings],,,,
+adapter,CTGTCTCTTATACACATCT,,,
+[Data],,,,
+Sample_ID,Description,I7_Index_ID,index,Sample_Project
+588_20,WTA_SampleTag_AbSeq,I3,AAGAGGCA,
+</code></pre>
+
+<p>Run_363.csv:</p>
+
+<pre><code>[Header],,,,
+Experiment Name,RUN363,,,
+Date,2020-11-09,,,
+Module,GenerateFASTQ - 2.0.1,,,
+Workflow,GenerateFASTQ,,,
+Library Prep Kit,BD_Rhapsody,,,
+Description,Constantin_BD_Rhapsody,,,
+Chemistry,Default,,,
+[Reads],,,,
+76,,,,
+76,,,,
+[Settings],,,,
+adapter,CTGTCTCTTATACACATCT,,,
+[Data],,,,
+Sample_ID,Description,I7_Index_ID,index,Sample_Project
+566_20,WTA_SampleTag_AbSeq,I1,GCTACGCT,
+</code></pre>
+
+<p>Run_366.csv:</p>
+
+<pre><code>[Header],,,,
+Experiment Name,RUN366,,,
+Date,2020-11-09,,,
+Module,GenerateFASTQ - 2.0.1,,,
+Workflow,GenerateFASTQ,,,
+Library Prep Kit,BD_Rhapsody,,,
+Description,Constantin_BD_Rhapsody,,,
+Chemistry,Default,,,
+[Reads],,,,
+76,,,,
+76,,,,
+[Settings],,,,
+adapter,CTGTCTCTTATACACATCT,,,
+[Data],,,,
+Sample_ID,Description,I7_Index_ID,index,Sample_Project
+572_20,WTA_SampleTag_AbSeq,I2,CGAGGCTG,
+</code></pre>
+
+<p>Run_368.csv:</p>
+
+<pre><code>[Header],,,,
+Experiment Name,RUN368,,,
+Date,2020-11-09,,,
+Module,GenerateFASTQ - 2.0.1,,,
+Workflow,GenerateFASTQ,,,
+Library Prep Kit,BD_Rhapsody,,,
+Description,Constantin_BD_Rhapsody,,,
+Chemistry,Default,,,
+[Reads],,,,
+76,,,,
+76,,,,
+[Settings],,,,
+adapter,CTGTCTCTTATACACATCT,,,
+[Data],,,,
+Sample_ID,Description,I7_Index_ID,index,Sample_Project
+589_20,WTA_SampleTag_AbSeq,I4,GTAGAGGA,
+</code></pre>
+
+<p>Also, for each experiments a file was generated and called <strong>demulti_*.sh</strong> such as:</p>
+
+<pre><code class="sh">#!/bin/bash
+bcl2fastq --runfolder-dir /home/gabriele.tosadori/sequenziamento/200701_NB500897_0363_AH5GCNBGXG/ --output-dir /home/gabriele.tosadori/sequenziamento/200701_NB500897_0363_AH5GCNBGXG_base_calls/ --sample-sheet RUN363.csv --no-lane-splitting
+</code></pre>
+
+<pre><code>#!/bin/bash
+bcl2fastq --runfolder-dir /home/gabriele.tosadori/sequenziamento/200702_NB500897_0364_AH5GGLBGXG/ --output-dir /home/gabriele.tosadori/sequenziamento/200702_NB500897_0364_AH5GGLBGXG_base_calls/ --sample-sheet RUN364.csv --no-lane-splitting
+</code></pre>
+
+<pre><code>#!/bin/bash
+bcl2fastq --runfolder-dir /home/gabriele.tosadori/sequenziamento/200701_NB500897_0363_AH5GCNBGXG/ --output-dir /home/gabriele.tosadori/sequenziamento/200701_NB500897_0363_AH5GCNBGXG_base_calls/ --sample-sheet RUN363.csv --no-lane-splitting
+</code></pre>
+
+<pre><code>#!/bin/bash
+bcl2fastq --runfolder-dir /home/gabriele.tosadori/sequenziamento/200706_NB500897_0366_AH5GKMBGXG/ --output-dir /home/gabriele.tosadori/sequenziamento/200706_NB500897_0366_AH5GKMBGXG_base_calls/ --sample-sheet RUN366.csv --no-lane-splitting
+</code></pre>
+
+<p>All of them were run using SLURM, by these script that were run from the command line of the HPC:</p>
+
+<pre><code>srun -c 8 --mem-per-cpu=4096 --output=demulti_200701.log --priority high demulti_200701.sh
+
+srun -c 8 --mem-per-cpu=4096 --output=demulti_200702.log --priority high demulti_200702.sh
+
+srun -c 8 --mem-per-cpu=4096 --output=demulti_200706.log --priority high demulti_200706.sh
+
+srun -c 8 --mem-per-cpu=4096 --output=demulti_200713.log --priority high demulti_200713.sh
+</code></pre>
+
+<h3>Step 2 - Alignment using SevenBridges platform by BD</h3>
+
+<p>Once the demultiplexing step is performed, for each run 2 FASTQ files were generated. These FASTQ files contain information about the reads and their quality. All the reads, at this point, must be aligned to a reference genome which, in our case, is the GRCm39 downloaded from <a href="https://www.ncbi.nlm.nih.gov/assembly/GCF_000001635.27">this link at NCBI website</a>. From this same link, the transcriptome annotations were downloaded too, in form of <strong>gtf</strong> file.</p>
+
+<pre><code>Description:     Genome Reference Consortium Mouse Build 39
+Organism name:    Mus musculus (house mouse)
+Infraspecific name:    Strain: C57BL/6J
+BioProject:    PRJNA20689
+Submitter:    Genome Reference Consortium
+Date:    2020/06/24
+Synonyms:    mm39
+Assembly level:    Chromosome
+Genome representation:    full
+RefSeq category:    reference genome
+GenBank assembly accession:    GCA_000001635.9 (latest)
+RefSeq assembly accession:    GCF_000001635.27 (latest)
+RefSeq assembly and GenBank assembly identical:    yes
+</code></pre>
+
+<p>This genome, since it is not provided by BD, went through a preparation step performed by BD staff.</p>
+
+<p>Using the SevenBridges platform, a Whole Transcriptome Analysis was run. Several files were used:</p>
+
+<ul>
+<li>FASTQ files from the bcl2fastq step;</li>
+<li>Reference genome;</li>
+<li>PhiX phage sequences;</li>
+<li>ABSeq references;</li>
+<li>Transcriptome annotations for GRCm39.</li>
+</ul>
+
+<p>SevenBridges provided several file to evaluate the goodness of the alignment, to understand how many reads and how many cells were meet the quality criteria and other information.</p>
+
+<p>Also, the count matrices representing the number of transcripts found for each gene and each cell were generated and used for the Step 3.</p>
+
+<h3>Step 3 - Cleaning and merging the samples using R</h3>
+
+<p>The first step of the R pipeline concerns loading the count matrices using Seurat, and converting them to be used as SingleCellExperiments.</p>
+
+<p>Then some quality-control (QC) checks are performed and some low quality cells may be removed.</p>
+
+<p>It is important to note that cells containing mitochondrial genes were removed. To achieve this goal, mitochondrial genes were retrieved using <a href="https://www.ncbi.nlm.nih.gov/assembly/GCF_000001635.27">a list available from the NCBI website</a>.</p>
+
+<p>Also ABSeq data were extracted:</p>
+
+<ul>
+<li>as they come;</li>
+<li>after normalising them using centered-log-ratio.</li>
+</ul>
+
+<p>To generate the figures that are mentioned in Step 5, the not normalised ABSeq data were used.</p>
+
+<h6>OUTPUTS:</h6>
+
+<ul>
+<li>raw ABseq data: <strong>abseq_data.Rds</strong>;</li>
+<li>centered log ratio ABseq data: <strong>centeredAB_data.Rds</strong>;</li>
+<li>raw data to be used for zinbwave: <strong>QCed<em>to</em>zinbwave.Rds</strong>;</li>
+<li>normalised data to be used for PCA: <strong>QCed_data.Rds</strong>.</li>
+</ul>
+
+<h3>Step 4 - Dimensionality reduction and clustering using R</h3>
+
+<p>Step 4 is performed by using Principal Component Analysis, when EAE data are analysed, or Zinbwave, when AD data were analysed. This difference is due to the fact that in AD, retrieving Gamma Delta T Cells required to use a more complex dimensionality reduction algorithm.</p>
+
+<p>To take advantage of Zinbwave, only the 1000 most variable genes were considered. This was done in order to actually compute the dimensionality reduction since Zinbwave is computationally expensive and may take a very long time to provide an output.</p>
+
+<p>Then clustering was performed. For EAE k-means was used, with K set at 20. This parameter was set after multiple tests and trials and it looks like it is the best solution. For AD, a <strong>slm</strong> clustering from the Seurat package was used. Here, different resolutions were tested, i.e. res=0, 1, 1.5. Eventually, 1.5 was chosen for the results.</p>
+
+<h6>OUTPUTS for dimensionality reduction:</h6>
+
+<ul>
+<li><p>from size factors analysis:</p>
+
+<ul>
+<li>exporting the reduced data with all the genes: <strong>denoised_data.Rds</strong>;</li>
+<li>exporting the reduced data with highly variable genes only: <strong>reduced<em>HVGs</em>data.Rds</strong>.</li>
+</ul></li>
+<li><p>from zinbwave analyis:</p>
+
+<ul>
+<li>zinbwave reduced data with K=20 and 1000 most variable genes: <strong>zinbwaved_data.Rds</strong>.</li>
+</ul></li>
+</ul>
+
+<h6>OUTPUTS for clustering:</h6>
+
+<ul>
+<li><strong>kmeans<em>clustered</em>data.Rds</strong> for size factors normalised data;</li>
+<li><strong>kmeans<em>HVGs</em>clustered_data.Rds</strong> for size factors with Highly Variable Genes only;</li>
+<li><strong>slm<em>clustered</em>data<em>K</em>20<em>top</em>1000.Rds</strong> for zinbwaved data and slm clustering;</li>
+<li><strong>slm<em>clustered</em>data<em>batched</em>K<em>20</em>top_1000.Rds</strong> for zinbwaved and batched experiments, and slm clustering.</li>
+</ul>
+
+<h3>Step 5 - Finding cell types and their marker genes using R</h3>
+
+<p>Each cell type may require different data processing, e.g. different dimensionality reduction i.e. PCA, Zinbwave, and clustering, in order to be properly clustered.</p>
+
+<p>Generally speaking, this step is divided in three parts that allowed analysing a specific cell type in three different settings:</p>
+
+<ol>
+<li>analyse each cluster that contain a specific cellType. For each cluster only cells of that specific cell type are considered;</li>
+<li>analyse each cluster that contain a specific cellType. For each cluster all the cells in the cluster are considered, no matter what their cellType is;</li>
+<li>analyse all and only cellType cells, without considering the clusters they may belong to.</li>
+</ol>
+
+<p>For each one of these setting, a list of differentially expressed genes (DEGs) is obtained, if there are any. These lists are called <strong>UP</strong>, <strong>DOWN</strong>, and <strong>up_and_Down</strong> and are stored into the corresponding cellType <strong>UpDown</strong> directory.</p>
+
+<p>It is possible that some cellType cells subset is found for a specific condition only, e.g. only for WT, making it impossible to obtain any DEG. Also, it may happen that there are too few cells hence the comparison between 3xTG vs WT or EAE vs CTRL cannot be performed. The threshold to determine if there are not enough cells is set to 25 for each of the two condition. This means that, to perform a comparison between EAE and CTRL there must be at least 50 cells, 25 belonging to each of the two conditions.</p>
+
+<p>In order to find DEGs, all the three functions needs a <strong>cTSubSet</strong>, which is also used for a later GSEA analysis, and two parameters were set. One is the False Discovery Rate (FDR) that allows to obtain stronger candidates and is preferred to the p-value. <strong>FDR is set at 0.05</strong>. The other parameter is used to determine the minimum amount of cells that are allowed for each condition, e.g. WT or EAE, in order to perform the comparison. This value, called <strong>personalT, is set to 25</strong>.</p>
+
+<p>For each set of found DEGs three tables are returned are stored in <strong>expCode/results/enrichment_cellType/UpDown/</strong>. These tables represent Up, Down and Up and Down together DEGs, ordered by their fold-change:</p>
+
+<ul>
+<li>Up from most positive to 0;</li>
+<li>Down from more negative to 0;</li>
+<li>Up and Down from most positive to most negative.</li>
+</ul>
+
+<!-- Then, a GSEA analysis, performed using the fgsea() algorithm is performed. GSEA is performed only on cells of a specific cellType for all the clusters in which they are found and for all the cells of a specific cellType found in all the dataset.
+
+The output parameter pAdj, i.e. p-value adjusted, is a BH-adjusted p-value according to (the manual)[http://www.bioconductor.org/packages/release/bioc/manuals/fgsea/man/fgsea.pdf]. This parameter is used to order the resulting tables.
+
+To perform GSEA, all the genes in the cTSubSet are previously ranked using DESeq2 statistics then the ranked DEGs are fed to the enrichment algorithm.
+
+Also, two parameters are set (see link above):
+
+ - minSizeMinimal size of a gene set to test.  All pathways below the threshold are excluded;
+ - maxSizeMaximal size of a gene set to test.  All pathways above the threshold are excluded.
+
+Two different GSEA analysis are performed: Reactome and C7 from the MSig database, compiled for *Mus musculus*.
+
+The C7 dataset was downloaded from http://bioinf.wehi.edu.au/MSigDB/ and used by the enrichment function. It is necessary to download **Mm.c7.all.v7.1.entrez.rds**, to run the analysis.
+
+Since C7 enrichment names refer to published research articles, the abstract of each found term is downloaded, to enable a complete review of all the retrieved information. Abstracts are found in the ***expCode/results/enrichment\_cellType/abstract*** directory.
+
+For each set of DEGs **the ten best**, or less if there are less, and **all the terms** are returned, as two separate tables called **enrich\_ten\_best** and **enrich\_all** , respectively. These files are found in the ***expCode/results/enrichment_cellType/GSEA/*** directory. It contains also and *enrichmentScore* showing the ES obtained by the GSEA for each term. -->
+
+<p>The ranking of the genes, performed with DESeq2 as mentioned above and supposed to be used for GSEA, is returned to perform further analyses. These rankings are stored into the <strong>ranks directory</strong> and are used in the next step.</p>
+
+<p>Some plots and a table are also provided and stored into <strong><em>expCode/results/figures/analysis_cellType</em></strong>:</p>
+
+<ul>
+<li>Cluster Matrix representing the content in cell types of the whole dataset;</li>
+<li>tSNE with clusters and cell types;</li>
+<li>tSNE showing only a specific cell type (in orange);</li>
+<li>two cluster composition plots representing the cell types, the number of that cell type in a specific cluster and two histograms one up and one right. The up histogram represents the percentage of a cell type for that cluster. The right histogram represent the percentage of a cell type for the dataset;</li>
+<li>a table called <strong><em>cluster</em>content_</strong> representing the actual numbers of cells for each cluster.</li>
+</ul>
+
+<p><strong>ABSeq analysis</strong> was performed and ABSeq plots, one for each cluster, were generated (and located in the same <strong>cellType figures directory</strong> as above).</p>
+
+<p>These plots represent the contribution of each antibody for each cell type found in a specific cluster. Ideally, the histograms for a certain cellType should be similar (if ImmGen misclassified some cells). If the histograms vary, then it might be that the clustering put together cells, in the same cluster, that are actually different.</p>
+
+<p>To analyse ABseq data this goal a file listing the name of the antibodies was used and is called <strong>abseqlist.txt</strong>.</p>
+
+<h6>OUTPUTS:</h6>
+
+<ul>
+<li>rankings found in the <strong>rank directory</strong>;</li>
+<li>up and down regulated genes for cellType cells, stored into the <strong>UpDown directory</strong>;</li>
+<li>some plots.</li>
+</ul>
+
+<h3>Step 6 - Analysis and enrichment using R</h3>
+
+<p>In this step it is fundamental to remember from where the genes lists are coming from. In particular there are two analysis:
+ - FindMarkers() used to generate <strong>UP</strong>, <strong>DOWN</strong>, and <strong>up_and_down</strong> files that are later enriched using EnrichMyData()
+ - DeSeq2 that is used inside the gseaMyData() function, that generates the <strong>ranking_genes_for</strong> files, that are used to GO, KEGG, and REACTOMEPlotting</p>
+
+<p>The enrichment analysis is performed in two steps. The first step takes advantage of ClusterProfiler to perform three different analysis: a GO molecular function, GO biological process, &lt;!&ndash; and a KEGG pathway analysis &ndash;&gt; and a Reactome pathway analysis. All of them are performed on all the sets of UpAndDown DEGs that were retrieved in Step 5. For each analysis a table called <em>clusterProfiler*</em> is generated and stored in <strong><em>expCode/results/enrichment</em>cellType/cProfiler/_</strong>.</p>
+
+<p>The tables for Up and Down, obtained in the previous step, are enriched using clusterProfiler and the results are listed as a set of tables which name is <strong>clusterProfiler_something</strong>. The results are stored into the <strong>cProfiler directory</strong> that is divided in several subdirectories depending on the enrichment that was performed:</p>
+
+<ul>
+<li>GO biological processes;</li>
+<li>GO molecular functions;</li>
+<li>Reactome Pathways.</li>
+</ul>
+
+<p>Each directory may contain several tables depending on the files that were genereated and stored in the <strong>UpDown directory</strong>.</p>
+
+<p>In this step, all the <strong>up_and_down</strong> lists are collected to determine the shared genes. A list of shared genes is returned. Also:</p>
+
+<ul>
+<li>an <strong>upset plot</strong>;</li>
+<li>a <strong>heatmap</strong>.</li>
+</ul>
+
+<p>describing how exactly the intersections occur, are returned.</p>
+
+<p>After this first step, another step is performed involving the plotting of many figures, one for each of these enrichment: &lt;!&ndash; KEGG, &ndash;&gt; GO and Reactome.</p>
+
+<p>To perform this further analysis, the ranking files are used. The rankings were generated using DESeq2 during the GSEA analysis in Step 5. Finally, for each enrichment, a table is exported showing all the results. They are stored in <strong>_expCode/results/enrichment<em>cellType/cProfiler/\</em></strong>. These files have the label <strong>cProf_DESEQ</strong> and are obtained using the <strong>ranking files</strong> obtained in the previous step.</p>
+
+<p>Each ranking is analysed and (several plots)[<a href="https://yulab-smu.top/biomedical-knowledge-mining-book/enrichplot.html">https://yulab-smu.top/biomedical-knowledge-mining-book/enrichplot.html</a>] are produced, for each enrichment, i.e. &lt;!&ndash; KEGG &ndash;&gt;GO and Reactome.</p>
+
+<p>The plots, described in the link above, are slightly modified to make them more readable. This is the full list of the generated plots:</p>
+
+<ul>
+<li><strong>Dot plot</strong> depicts the enrichment scores, p-adjusted, gene count and ratio as dot color, dimension, and position on the x axis;</li>
+<li><strong>Cnetplot</strong> depicts the linkages of genes and biological concepts (e.g. GO terms or KEGG pathways) as a network;</li>
+<li><strong>Heatplot</strong> is similar to cnetplot, while displaying the relationships as a heatmap. The gene-concept network may become too complicated if user want to show a large number significant terms. The heatplot can simplify the result and more easy to identify expression patterns;</li>
+<li><strong>Enrichment map</strong> organizes enriched terms into a network with edges connecting overlapping gene sets. In this way, mutually overlapping gene sets are tend to cluster together, making it easy to identify functional module.</li>
+</ul>
+
+<p>All these figures are stored in two directories that are <strong>GO_plots</strong> and <strong>Reactome_plots</strong>, found in each cellType&#39;s analysis directory.</p>
+
+<h6>OUTPUTS:</h6>
+
+<ul>
+<li>the figures described above.</li>
+</ul>
+
+<h3>Summarising the full R pipeline</h3>
+
+<p>To perform the actual R analysis, there are many files that must be run.</p>
+
+<ul>
+<li><strong>00_functions.R</strong>: this file contains the functions that are used throughout the pipeline, in particular in 04 and 05 steps;
+
+<ul>
+<li><strong>01_cleaning_AD.R</strong>: clean AD data and get them ready to be processed by Zinbwave;</li>
+<li><strong>01_cleaning_EAE.R</strong>: clean EAE data and get them ready to be processed by PCA;</li>
+<li><strong>02_dims_reduction_sizeFactors.R</strong>: dimensionality reduction using PCA, mainly used for EAE data but can be used for AD too, if they are processed using size factors;</li>
+<li><strong>02_dims_reduction_zinbwave.R</strong>: dimensionality reduction using Zinbwave, mainly used for AD data but can be used for EAE too, if they are not processed using size factors;</li>
+<li><strong>02_dims_reduction_zinbwave_batched_AD.R</strong>: dimensionality reduction using Zinbwave, for AD data;</li>
+<li><strong>02_dims_reduction_zinbwave_batched_EAE.R</strong>: dimensionality reduction using Zinbwave, for EAE data;</li>
+<li><strong>03_kmeans_clustering.R</strong>: clustering for EAE using kmeans, but works for AD too after PCA, using the full dataset;</li>
+<li><strong>03_kmeans_reducedHVG_clustering.R</strong>: clustering for EAE using kmeans, but works for AD too after PCA, using the 1000 most variable genes;</li>
+<li><strong>03_slm_clustering.R</strong>: clustering for AD using slm algorithm, but works for EAE too after Zinbwave;</li>
+<li><strong>03_slm_clustering_batched.R</strong>: clustering for AD and EAE batched data using slm algorithm;</li>
+<li><strong>04_find_AD_Bcells_zinbwave.R</strong>: analysing Bcells for AD data;</li>
+<li><strong>04_find_AD_CD4_zinbwave.R</strong>;</li>
+<li><strong>04_find_AD_CD8_zinbwave.R</strong>;</li>
+<li><strong>04_find_AD_Neutrophils_zinbwave.R</strong>;</li>
+<li><strong>04_find_AD_Tgd_zinbwave.R</strong>;</li>
+<li><strong>04_find_batched_AD.R</strong>: analysing all cell types for batched AD;</li>
+<li><strong>04_find_batched_EAE.R</strong>: analysing Neutrophils cells for batched EAE;</li>
+<li><strong>04_find_EAE_Neutrophils_PCA.R</strong> : analysing Neutrophils cells for EAE data;</li>
+<li><strong>05_enrichment_analysis_AD.R</strong>: performing enrichment with ClusterProfiler and generating several, different plots;</li>
+<li><strong>05_enrichment_analysis_batched_AD.R</strong>;</li>
+<li><strong>05_enrichment_analysis_batched_EAE.R</strong>;</li>
+<li><strong>05_enrichment_analysis_EAE.R</strong>;</li>
+<li><strong>06_network_analysis.R</strong>: performing network analysis using DEGs.</li>
+</ul></li>
+</ul>
+
+<p><strong>NOTE</strong></p>
+
+<p>To run Step 4, run all the scripts through the command line. The fastest way is in parallel, but serial is ok too (it takes way more time). These commands also remove unwanted characters.</p>
+
+<pre><code># AD
+
+Rscript 04_find_AD_CD4_zinbwave.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_AD_CD4.txt
+Rscript 04_find_AD_Bcells_zinbwave.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_AD_Bcells.txt
+Rscript 04_find_AD_CD8_zinbwave.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_AD_CD8.txt
+Rscript 04_find_AD_Neutrophils_zinbwave.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_AD_Neutrophils.txt
+Rscript 04_find_AD_Tgd_zinbwave.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_AD_Tgd.txt
+
+# EAE
+Rscript 04_find_EAE_Neutrophils_PCA.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_Neutrophils_EAE.txt
+
+# BATCHED
+Rscript 04_find_batched_AD.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_batched_AD.txt
+Rscript 04_find_batched_EAE.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_batched_EAE.txt
+Rscript 04_find_batched_AD_CD4_CD8.R | sed &#39;s#\[1\] ##g&#39; | sed &#39;s/&quot;//g&#39; &gt; text_res/results_batched_AD_CD4_CD8.txt
+</code></pre>
+
+<p>Then, run 05 in the same way:</p>
+
+<pre><code>Rscript 05_enrichment_analysis_AD.R
+Rscript 05_enrichment_analysis_batched_AD.R
+Rscript 05_enrichment_analysis_EAE.R
+Rscript 05_enrichment_analysis_batched_EAE.R
+</code></pre>
+
+<h3>The full pipeline should be:</h3>
+
+<pre><code>#################################       STEP ONE
+
+01_cleaning_AD.R    exp 566 +
+01_cleaning_AD.R    exp 572 +
+
+01_cleaning_EAE.R   exp 588 +
+01_cleaning_EAE.R   exp 589 +
+
+01_cleaning_AD_10x.R
+
+#################################       STEP TWO
+
+02_dims_reduction_sizeFactors.R exp 588
+02_dims_reduction_sizeFactors.R exp 589
+
+02_dims_reduction_zinbwave.R    exp 566 +
+02_dims_reduction_zinbwave.R    exp 572 +
+
+02_dims_reduction_zinbwave_batched_AD.R
+
+02_dims_reduction_zinbwave_batched_EAE.R
+
+02_dims_reduction_zinbwave_10x.R
+
+#################################       STEP THREE
+
+03_kmeans_clustering.R
+
+03_slm_clustering.R
+
+03_slm_clustering_batched.R
+
+03_slm_clustering_10x.R
+
+#################################       STEP FOUR
+
+04_find_10x_zinbwave.R
+
+04_find_AD_Bcells_zinbwave.R
+
+04_find_AD_CD4_zinbwave.R
+
+04_find_AD_CD8_zinbwave.R
+
+04_find_AD_Neutrophils_zinbwave.R
+
+04_find_AD_Tgd_zinbwave.R
+
+04_find_EAE_Neutrophils_PCA.R
+
+04_find_batched_AD.R
+
+04_find_batched_AD_CD4_CD8.R
+
+04_find_batched_EAE.R
+
+#################################       STEP FIVE
+
+05_enrichment_analysis_10x.R
+
+05_enrichment_analysis_AD.R
+
+05_enrichment_analysis_EAE.R
+
+05_enrichment_analysis_batched_AD.R
+
+05_enrichment_analysis_batched_EAE.R
+
+#################################       STEP SIX
+
+06_network_analysis. R
+</code></pre>
+
+<h3>R Version and Libraries</h3>
+
+<pre><code>R version 4.0.4 (2021-02-15) -- &quot;Lost Library Book&quot;
+Copyright (C) 2021 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+</code></pre>
+
+<ul>
+<li>zinbwave_1.12.0</li>
+<li>UpSetR_1.4.0<br></li>
+<li>stringr_1.4.0</li>
+<li>SingleR_1.4.0<br></li>
+<li>Seurat_3.2.3</li>
+<li>scran_1.18.3<br></li>
+<li>scater_1.18.3</li>
+<li>ReactomePA_1.34.0<br></li>
+<li>RColorBrewer_1.1-2</li>
+<li>plyr_1.8.6<br></li>
+<li>pheatmap_1.0.12</li>
+<li>pathview_1.30.1<br></li>
+<li>org.Mm.eg.db_3.12.0</li>
+<li>openxlsx_4.2.3</li>
+<li>limma_3.46.0<br></li>
+<li>HelpersMG_4.4</li>
+<li>gridExtra_2.3<br></li>
+<li>ggplot2_3.3.3</li>
+<li>gg.gap_1.3<br></li>
+<li>fgsea_1.16.0</li>
+<li>enrichplot_1.10.1<br></li>
+<li>DropletUtils_1.10.2</li>
+<li>DOSE_3.16.0<br></li>
+<li>DESeq2_1.30.0</li>
+<li>ddpcr_1.15<br></li>
+<li>cowplot_1.1.1</li>
+<li>compositions_2.0-1<br></li>
+<li>clusterProfiler_3.18.0</li>
+<li>clusterExperiment_2.10.0<br></li>
+<li>SingleCellExperiment_1.12.0</li>
+<li>cluster_2.1.1<br></li>
+<li>celldex_1.0.0</li>
+<li>bluster_1.0.0</li>
+<li>BiocParallel_1.24.1</li>
+</ul>
+</body></html>
